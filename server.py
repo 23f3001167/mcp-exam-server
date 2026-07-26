@@ -58,11 +58,4 @@ async def solve_challenge(ctx: Context) -> str:
 
 
 if __name__ == "__main__":
-    import os
-
-    port = int(os.environ.get("PORT", "8000"))
-
-    mcp.settings.host = "0.0.0.0"
-    mcp.settings.port = port
-
     mcp.run(transport="streamable-http")
