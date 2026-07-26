@@ -1,22 +1,41 @@
 import hashlib
+import os
+
 from mcp.server.fastmcp import FastMCP, Context
+from mcp.server.transport_security import TransportSecuritySettings
 
 
 EMAIL = "23f3001167@ds.study.iitm.ac.in".strip().lower()
 
+PUBLIC_HOST = "mcp-exam-server-bmxt.onrender.com"
+
 
 mcp = FastMCP(
     "Exam Challenge MCP",
+
+    host="0.0.0.0",
+    port=int(os.environ.get("PORT", "8000")),
+
     stateless_http=True,
     json_response=True,
+
+    transport_security=TransportSecuritySettings(
+        enable_dns_rebinding_protection=True,
+        allowed_hosts=[
+            PUBLIC_HOST,
+            f"{PUBLIC_HOST}:*",
+            "localhost:*",
+            "127.0.0.1:*",
+        ],
+    ),
 )
 
 
 @mcp.tool()
 async def solve_challenge(ctx: Context) -> str:
     """
-    Solve the exam challenge using the X-Exam-Challenge
-    header from the current HTTP tool-call request.
+    Solve the exam challenge using the challenge supplied
+    in the HTTP request header.
     """
 
     headers = ctx.request_context.headers
@@ -25,9 +44,6 @@ async def solve_challenge(ctx: Context) -> str:
         raise ValueError("HTTP request headers are missing")
 
     challenge = headers.get("x-exam-challenge")
-
-    if not challenge:
-        challenge = headers.get("X-Exam-Challenge")
 
     if not challenge:
         raise ValueError("X-Exam-Challenge header is missing")
